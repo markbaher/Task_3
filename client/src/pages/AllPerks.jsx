@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { use, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api'
 
@@ -29,8 +29,22 @@ export default function AllPerks() {
  * useEffect Hook #2: Auto-search on Input Change
 
 */
+useEffect(() => {
+    // Load all perks when component mounts
+    loadAllPerks()
+    // Empty dependency array means this runs only once on mount
+  }, []) // Empty dependency array
+useEffect(() => {
+  // Auto-search whenever the searchQuery or merchantFilter changes
+  // Add a small debounce delay to avoid sending too many API calls while typing
+  const delay = setTimeout(() => {
+    loadAllPerks()
+  }, 500) // 500ms delay
 
-  
+  return () => clearTimeout(delay)
+}, [searchQuery, merchantFilter])
+
+
   useEffect(() => {
     // Extract all merchant names from perks array
     const merchants = perks
@@ -136,7 +150,7 @@ export default function AllPerks() {
                 type="text"
                 className="input"
                 placeholder="Enter perk name..."
-                
+                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               <p className="text-xs text-zinc-500 mt-1">
                 Auto-searches as you type, or press Enter / click Search
@@ -150,17 +164,17 @@ export default function AllPerks() {
                 {' '}Filter by Merchant
               </label>
               <select
-                className="input"
-                
-              >
-                <option value="">All Merchants</option>
-                
-                {uniqueMerchants.map(merchant => (
-                  <option key={merchant} value={merchant}>
-                    {merchant}
-                  </option>
-                ))}
-              </select>
+                  className="input"
+                  value={merchantFilter}
+                  onChange={(e) => setMerchantFilter(e.target.value)}
+                >
+                  <option value="">All Merchants</option>
+                  {uniqueMerchants.map(merchant => (
+                    <option key={merchant} value={merchant}>
+                      {merchant}
+                    </option>
+                  ))}
+                </select>
             </div>
           </div>
 
@@ -173,6 +187,7 @@ export default function AllPerks() {
             <button 
               type="button" 
               onClick={handleReset}
+              onChange={() => setMerchantFilter('')}
               className="btn"
             >
               <span className="material-symbols-outlined text-sm align-middle">refresh</span>
